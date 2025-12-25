@@ -1,0 +1,33 @@
+version: v2.40.3-desktop.1
+
+services:
+  backend:
+    build: backend/
+    command: bentoml serve --port 3000 --host 0.0.0.0
+
+    ports: 
+      - 3000:3000
+
+    networks:
+      - app-network
+
+
+  frontend:
+    build: frontend/
+    command: streamlit run UI.py
+
+    ports:
+      - 8501:8501
+
+    depends_on:
+      - backend
+
+    networks:
+      - app-network
+    environment:
+      - BENTOML_SERVICE=http://backend:3000
+
+networks:
+  app-network:
+    # Дополнительные параметры сети (опционально)
+    driver: bridge
