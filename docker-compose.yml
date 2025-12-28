@@ -1,12 +1,41 @@
 version: v2.40.3-desktop.1
 
 services:
+  database:
+    container_name: qdrant-db
+    image: qdrant/qdrant:gpu-nvidia-latest
+    #command:
+
+    environment:
+      QDRANT__CLUSTER__ENABLED: "false"
+
+    ports:
+      - 6333:6333
+
+    networks:
+      - app-network
+
+    restart: unless-stopped
+    
+    runtime: nvidia
+    
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
   backend:
     build: backend/
     command: bentoml serve --port 3000 --host 0.0.0.0
 
     ports: 
       - 3000:3000
+
+    depends_on:
+      - database
 
     networks:
       - app-network
@@ -24,9 +53,10 @@ services:
 
     networks:
       - app-network
+
     environment:
       - BENTOML_SERVICE=http://backend:3000
-
+    
 networks:
   app-network:
     # Дополнительные параметры сети (опционально)
