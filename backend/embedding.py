@@ -34,7 +34,9 @@ class SentenceTransformers:
         print("encoding sentences:", len(sentences))
         # Tokenize sentences
         sentence_embeddings= self.model.encode(sentences)
-        return sentence_embeddings
+        average_sentence_embeddings = np.mean(sentence_embeddings, axis = 0)
+
+        return average_sentence_embeddings
 
 
 class BentoMLEmbeddings(BaseEmbedding):
@@ -44,7 +46,7 @@ class BentoMLEmbeddings(BaseEmbedding):
         super().__init__(**kwargs)
         self._model = embed_model
 
-    def sync_client(self, query: str):
+    def sync_client(self, query: list[str]):
         response = {}
         if isinstance(query, list):
             response = self._model.encode(sentences=query)
@@ -52,7 +54,7 @@ class BentoMLEmbeddings(BaseEmbedding):
             response = self._model.encode(sentences=[query])
         return response
 
-    async def async_client(self, query: str):
+    async def async_client(self, query: list[str]):
         response = {}
         if isinstance(query, list):
             response = await self._model.encode(sentences=query)
@@ -60,12 +62,12 @@ class BentoMLEmbeddings(BaseEmbedding):
             response = await self._model.encode(sentences=[query])
         return response
 
-    async def _aget_query_embedding(self, query: str):
+    async def _aget_query_embedding(self, query: list[str]):
         res = await self.async_client(query)
-        return res[0].tolist()
+        return res.tolist()
 
-    def _get_query_embedding(self, query: str):
-        return self.sync_client(query)[0].tolist()
+    def _get_query_embedding(self, query: list[str]):
+        return self.sync_client(query).tolist()
 
     def _get_text_embedding(self, text):
         if isinstance(text, str):

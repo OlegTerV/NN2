@@ -40,6 +40,9 @@ services:
     networks:
       - app-network
 
+    environment:
+      - DB_SERVICE=http://database:6333
+
 
   frontend:
     build: frontend/
